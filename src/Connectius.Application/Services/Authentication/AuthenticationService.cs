@@ -1,6 +1,8 @@
-﻿using Connectius.Application.Common.Interfaces.Authentication;
+﻿using Connectius.Application.Common.Errors;
+using Connectius.Application.Common.Interfaces.Authentication;
 using Connectius.Application.Common.Interfaces.Persistence;
 using Connectius.Domain.Entities;
+using FluentResults;
 
 namespace Connectius.Application.Services.Authentication;
 
@@ -20,7 +22,7 @@ public class AuthenticationService : IAuthenticationService
         //validar se o usuário existe
         if (_userRepository.GetUserByEmail(email) is not User user)
         {
-            throw new Exception("O usuário com este e-mail já existe");
+            throw new Exception("E-mail já existente");
         }
         
         //validar se a senha está correta
@@ -37,12 +39,19 @@ public class AuthenticationService : IAuthenticationService
             token);
     }
 
-    public AuthenticationResult Register(string displayName, string username, string email, string password)
+    public Result<AuthenticationResult> Register(
+        string displayName, 
+        string username, 
+        string email, 
+        string password)
     {
         // verificar se o usuário existe
         if (_userRepository.GetUserByEmail(email) is not null)
         {
-            throw new Exception("O usuário com este e-mail já existe");
+            return Result.Fail<AuthenticationResult>(new[]
+            {
+                new DuplicateEmailError()
+            });
         }
         
         // criar usuário
