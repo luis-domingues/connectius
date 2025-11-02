@@ -1,6 +1,7 @@
 using Connectius.Application;
 using Connectius.Infrastructure;
-using Microsoft.AspNetCore.Diagnostics;
+using Connectius.Presentation.Common.Errors;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,8 @@ builder.Services
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+builder.Services.AddSingleton<ProblemDetailsFactory, ConnectiusProblemDetailsFactory>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -18,14 +21,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-//app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseExceptionHandler("/error");
-app.Map("/error", (HttpContext httpContext) =>
-{
-    Exception? exception = httpContext.Features.Get<IExceptionHandlerFeature>()?.Error;
 
-    return Results.Problem();
-});
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();

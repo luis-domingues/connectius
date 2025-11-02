@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 
-namespace Connectius.Presentation.Errors;
+namespace Connectius.Presentation.Common.Errors;
 
 public class ConnectiusProblemDetailsFactory : ProblemDetailsFactory
 {
