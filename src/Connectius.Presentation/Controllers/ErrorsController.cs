@@ -11,6 +11,12 @@ public class ErrorsController : ControllerBase
         Exception? exception = HttpContext.Features
             .Get<IExceptionHandlerFeature>()?
             .Error;
-        return Problem();
+
+        var (statusCode, message) = exception switch
+        {
+            _ => (StatusCodes.Status500InternalServerError, "Um erro inesperado aconteceu")
+        };
+        
+        return Problem(statusCode:statusCode, title:message);
     }
 }
