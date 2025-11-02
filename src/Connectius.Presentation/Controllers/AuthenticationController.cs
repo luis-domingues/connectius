@@ -1,5 +1,7 @@
+using Connectius.Application.Common.Errors;
 using Connectius.Application.Services.Authentication;
 using Connectius.Contracts.Authentication;
+using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Connectius.Presentation.Controllers;
@@ -18,22 +20,38 @@ public class AuthenticationController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register(RegisterRequest request)
     {
-        var authResult = _authenticationService.Register(
+        Result<AuthenticationResult> registerResult = _authenticationService.Register(
             request.DisplayName, 
             request.Username, 
             request.Email, 
             request.Password);
 
-        var response = new AuthenticationResponse(
+        if (registerResult.IsSuccess)
+        {
+            return Ok(MapAuthResult(registerResult.Value));
+        }
+
+        var firstError = registerResult.Errors[0];
+        
+        if (firstError is DuplicateEmailError)
+        {
+            return Problem(statusCode: StatusCodes.Status409Conflict, detail: "E-mail já existente");
+        }
+
+        return Problem();
+    }
+
+    private static AuthenticationResponse MapAuthResult(AuthenticationResult authResult)
+    {
+        return new AuthenticationResponse(
             authResult.user.Id,
             authResult.user.DisplayName,
             authResult.user.Username,
             authResult.user.Email,
-            authResult.Token);
-        
-        return Ok(response);
+            authResult.Token
+            );
     }
-    
+
     [HttpPost("login")]
     public IActionResult Login(LoginRequest request)
     {
